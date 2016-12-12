@@ -12,6 +12,10 @@ fi
 
 domain=$1
 project=$(echo $domain | sed "s/[-()_*]//g" | cut -d. -f1)
+if [ "x$project" == "x" ]; then
+  echo "Cannot get project name"
+  exit 1
+fi
 sftpuser="${project}user"
 sqluser="${project}sql"
 
@@ -42,6 +46,7 @@ echo "$sftpuser:$sftppasswd" | chpasswd
 echo "creating directory /srv/www/$project/"
 mkdir -p /srv/www/$project/www
 chmod 0755 /srv/www/$project/
+chown root:root /srv/www/$project/
 chown ${sftpuser}:apache /srv/www/$project/www
 
 echo "configuring php-fpm"

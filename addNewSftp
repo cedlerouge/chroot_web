@@ -1,0 +1,84 @@
+#!/bin/bash
+
+if [ ! $# -eq 1]; then
+    cat <<EOF
+$0: usage
+$0 domain
+   domain  : servername of apache : http://domain/
+EOF
+    exit 0
+fi
+
+
+domain=$1
+project=$(echo $domain | sed "s/[-()_*]//g" | cut -d. -f1)
+sftpuser="${project}user"
+sqluser="${project}sql"
+
+function genpasswd {
+if [ $# -eq 1 ]; then
+    if [ $1 -gt 8 ]; then
+        #echo -n "mot de passe: "
+        pass=$(</dev/urandom tr -dc A-KM-NP-Za-km-z2-9 | head -c$1)
+        echo $pass
+    else
+        echo "argument doit etre superieur a 6"
+        exit 1
+    fi
+else
+    #echo -n "Pas d'argument donc par defaut mdp de 8 caracteres: "
+    pass=$(</dev/urandom tr -dc A-KM-NP-Za-km-z2-9 | head -c10)
+    echo $pass
+fi
+}
+
+
+sftppasswd=$(genpasswd)
+
+echo "adding user $sftpuser"
+adduser -d /srv/www/$project -m -G apache ${sftpuser}
+echo "$sftpuser:$sftppasswd" | chpasswd
+
+echo "creating directory /srv/www/$project/"
+mkdir -p /srv/www/$project/www
+chmod 0755 /srv/www/$project/
+chown ${sftpuser}:apache /srv/www/$project/www
+
+echo "configuring php-fpm"
+sed "s/DOMAIN/$project}/g" /etc/php-fpm.d/template.conf.tpl > /etc/php-fpm.d/${project}.conf
+if ! php-fpm -t; then
+    echo "php5-fpm configuration is invalid. Exit script"
+    exit 1
+fi
+
+echo "configuring apache"
+sed "s/PROJECT/${project}/g" /etc/httpd/conf.d/template.conf.tpl > /etc/httpd/conf.d/vhost_${domain}.conf
+sed -i "s/DOMAIN/${domain}/g" /etc/httpd/conf.d/vhost_${domain}.conf
+if ! apachectl -t; then
+    echo "httpd configuration is invalid. Exit script"
+    exit 1
+fi
+
+echo "adding database and user"
+dbpasswd=$(genpasswd)
+mysql -u root -p$(cat /root/.pdb) -e "create database ${project};"
+mysql -u root -p$(cat /root/.pdb) -e "grant usage on *.* to ${sqluser}@localhost identified by '${dbpasswd}';GRANT ALL PRIVILEGES ON ${project}.* TO ${sqluser}@localhost with grant option;"
+
+
+echo "Summary Notes: "
+
+cat << EOF
+sftp
+---
+login        : ${sftpuser}
+mot de passe : ${sftppasswd}
+chemin       : /srv/www/${project}/www
+
+sql
+---
+login        : ${sqluser}
+mot de passe : ${dbpasswd}
+bdd          : ${project}
+
+url          : http://${domain}
+EOF

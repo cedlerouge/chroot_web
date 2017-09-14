@@ -51,7 +51,8 @@ FPMPOOLDIR=/etc/php/5.6/fpm/pool.d
 VHOSTDIR=/etc/apache2/sites-available
 VHOSTENABLEDDIR=/etc/apache2/sites-enabled
 LOGAPACHE=/var/log/apache2
-binfpm=php-fpm5.6
+binfpm=`which php-fpm5.6`
+binapachect=`which apache2ctl`
 apacheuser=www-data
 MYSQLBIN=`which mysql`
 MYSQLADMIN=`which mysqladmin`
@@ -174,7 +175,7 @@ echo "configuring $binfpm"
 sed -e "s/DOMAIN/${PROJECT}/g" \
     -e "s/USER/${USER}/g" \
     $FPMPOOLDIR/template.conf.tpl > $FPMPOOLDIR/${PROJECT}.conf
-if [ ! $binfpm -t ]; then
+if ! $binfpm -t; then
     echo "$binfpm configuration is invalid. Exit script"
     exit 1
 fi
@@ -184,7 +185,7 @@ sed -e "s/PROJECT/${PROJECT}/g" \
     -e "s/DOMAIN/${domain}/g" \
     $VHOSTDIR/vhost_template.conf.tpl > $VHOSTDIR/vhost_${DOMAIN}.conf
 ln -s $VHOSTDIR/vhost_${DOMAIN}.conf $VHOSTENABLEDDIR/vhost_${DOMAIN}.conf
-if [ ! apachectl -t ]; then
+if ! $binapache2ctl -t; then
     echo "httpd configuration is invalid. Exit script"
     exit 1
 fi

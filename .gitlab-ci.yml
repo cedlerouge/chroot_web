@@ -2,7 +2,7 @@
 image: xenia-apache2-php5.6-fpm-percona
 
 before_script:
-  - apt-get install vim nano
+  - apt-get -f install vim nano
   - cp ./vhost_template.conf.tpl /etc/apache2/sites-available/
   - cp ./template.conf.tpl /etc/php/5.6/fpm/pool.d/
   - service mysql start

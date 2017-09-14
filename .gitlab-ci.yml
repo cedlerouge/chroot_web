@@ -1,0 +1,22 @@
+
+image: xenia-apache2-php5.6-fpm-percona
+
+before_script:
+  - systemctl start mysql
+  - systemctl start apache2
+  - systemctl start php5.6-fpm
+
+build:
+  stage: build
+  script:
+  - cp ./vhost_template.conf.tpl /etc/apache2/sites-available/
+  - cp ./template.conf.tpl /etc/php/5.6/fpm/pool.d/
+
+test:
+  script: 
+  - ./addNewSftp -d testdb -u test -p test.example.com
+  - mysql -e "show databases;"
+  - id test
+  - cat /etc/apache2/sites-enabled/vhost_test.example.com.conf
+  - cat /etc/php/5.6/fpm/pool.d/test.example.com.conf
+  - ls -l /var/www/test/*

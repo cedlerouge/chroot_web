@@ -189,6 +189,7 @@ sed -e "s/PROJECT/${PROJECT}/g" \
     $VHOSTDIR/vhost_template.conf.tpl > $VHOSTDIR/vhost_${DOMAIN}.conf
 ln -s $VHOSTDIR/vhost_${DOMAIN}.conf $VHOSTENABLEDDIR/vhost_${DOMAIN}.conf
 if ! $binapache2ctl -t; then
+    cat $VHOSTENABLEDDIR/vhost_${DOMAIN}.conf
     echo "httpd configuration is invalid. Exit script"
     exit 1
 fi

@@ -175,6 +175,9 @@ echo "configuring $binfpm"
 sed -e "s/DOMAIN/${PROJECT}/g" \
     -e "s/USER/${USER}/g" \
     $FPMPOOLDIR/template.conf.tpl > $FPMPOOLDIR/${PROJECT}.conf
+if [ ! -e /var/log/php-fpm/ ]; then 
+    mkdir /var/log/php-fpm/
+fi
 if ! $binfpm -t; then
     echo "$binfpm configuration is invalid. Exit script"
     exit 1

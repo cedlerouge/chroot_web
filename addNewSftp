@@ -56,6 +56,8 @@ binapache2ctl=`which apache2ctl`
 apacheuser=www-data
 MYSQLBIN=`which mysql`
 MYSQLADMIN=`which mysqladmin`
+CHROOTBIN=`which chroot`
+CHROOTUSERBIN=/bin/chrootuser
 
 while getopts ":d:p:u:h" opt; do
     case "$opt" in
@@ -79,6 +81,19 @@ if [ ! $? -eq 0 ]; then
     echo "Could not connect to mysql server. Is server alive ? Is there a ~/.my.cnf file"
     exit 256
 fi
+# check chroot binary
+if [ ! -x ${CHROOTUSERBIN} ]; then
+    if [ ! -x ${CHROOTBIN}_suid ]; then 
+        # create a chroot binary with SUID right
+        cp ${CHROOTBIN} ${CHROOTBIN}_suid
+        chmod 4755 ${CHROOTBIN}_suid
+    fi
+    cat > ${CHROOTUSERBIN} << EOF
+#!/bin/bash
+exec -c ${CHROOTBIN}_suid /${WDIR}/\$USER /bin/bash
+EOF
+    chmod 555 ${CHROOTUSERBIN}
+fi 
 
 PROJECT=$(echo $DOMAIN | sed "s/[-()_*]//g" | cut -d. -f1)
 # don't want a project named wwww
@@ -128,52 +143,52 @@ sftppasswd=$(genpasswd)
 echo "adding user $USER"
 useradd \
    -c "User chrooted" \
-   -d "${WDIR}/${PROJECT}/" \
+   -d "${WDIR}/${USER}/" \
    -g "${GROUP}" \
    -s "/bin/chrootuser" \
    "${USER}"
 
 echo "${USER}:${sftppasswd}" | chpasswd
 
-echo "Creating homedir: ${WDIR}/${PROJECT}/"
-mkdir ${WDIR}/${PROJECT}/ \
-   ${WDIR}/${PROJECT}/bin/ \
-   ${WDIR}/${PROJECT}/lib/ \
-   ${WDIR}/${PROJECT}/lib64/ \
-   ${WDIR}/${PROJECT}/usr/ \
-   ${WDIR}/${PROJECT}/usr/bin/ \
-   ${WDIR}/${PROJECT}/log \
-   ${WDIR}/${PROJECT}/dev/ 
+echo "Creating homedir: ${WDIR}/${USER}/"
+mkdir ${WDIR}/${USER}/ \
+   ${WDIR}/${USER}/bin/ \
+   ${WDIR}/${USER}/lib/ \
+   ${WDIR}/${USER}/lib64/ \
+   ${WDIR}/${USER}/usr/ \
+   ${WDIR}/${USER}/usr/bin/ \
+   ${WDIR}/${USER}/log \
+   ${WDIR}/${USER}/dev/ 
    
 chmod 700 \
-   ${WDIR}/${PROJECT}/ \
-   ${WDIR}/${PROJECT}/bin/ \
-   ${WDIR}/${PROJECT}/lib/ \
-   ${WDIR}/${PROJECT}/lib64/ \
-   ${WDIR}/${PROJECT}/usr/ \
-   ${WDIR}/${PROJECT}/usr/bin/ \
-   ${WDIR}/${PROJECT}/dev/
+   ${WDIR}/${USER}/ \
+   ${WDIR}/${USER}/bin/ \
+   ${WDIR}/${USER}/lib/ \
+   ${WDIR}/${USER}/lib64/ \
+   ${WDIR}/${USER}/usr/ \
+   ${WDIR}/${USER}/usr/bin/ \
+   ${WDIR}/${USER}/dev/
 
-echo "${LOGAPACHE} ${WDIR}/${PROJECT}/log/ none bind 0 0" >> /etc/fstab
+echo "${LOGAPACHE} ${WDIR}/${USER}/log/ none bind 0 0" >> /etc/fstab
 mount -a 
 
-cp /lib64/ld-linux-x86-64.so.2 ${WDIR}/${PROJECT}/lib64/ 
-for b in /bin/bash /bin/nano /bin/ls /usr/bin/tail /usr/bin/vim /bin/cat;
+cp /lib64/ld-linux-x86-64.so.2 ${WDIR}/${USER}/lib64/ 
+for b in /bin/bash /bin/nano /bin/ls /usr/bin/tail /usr/bin/vim /bin/cat /usr/bin/mysql;
 do 
-    cp $b ${WDIR}/${PROJECT}/$b
-    P="${WDIR}/${PROJECT}"
-    ldd $b | grep "/lib/" | awk -v "PROJECT=$P" '{ print "cp "$3" "PROJECT"/lib/" }' | bash
+    cp $b ${WDIR}/${USER}/$b
+    P="${WDIR}/${USER}"
+    ldd $b | grep "/lib/" | awk -v "PROJECTDIR=$P" '{ print "cp "$3" "PROJECTDIR"/lib/" }' | bash
 done
 
-mknod ${WDIR}/${PROJECT}/dev/null c 1 3 -m 666
-chown -R "${PROJECT}:${GROUP}" ${WDIR}/${PROJECT}
+mknod ${WDIR}/${USER}/dev/null c 1 3 -m 666
+chown -R "${USER}:${GROUP}" ${WDIR}/${USER}
 
 
-echo "creating web directory $WDIR/$PROJECT/www"
-mkdir -p $WDIR/$PROJECT/www
-chmod 0755 $WDIR/$PROJECT/
-chown root:root $WDIR/$PROJECT/
-chown ${USER}:$apacheuser $WDIR/$PROJECT/www
+echo "creating web directory $WDIR/$USER/www"
+mkdir -p $WDIR/$USER/www
+chmod 0755 $WDIR/$USER/
+chown root:root $WDIR/$USER/
+chown ${USER}:$apacheuser $WDIR/$USER/www
 
 echo "configuring $binfpm"
 sed -e "s/DOMAIN/${PROJECT}/g" \
@@ -189,6 +204,7 @@ fi
 
 echo "configuring apache"
 sed -e "s/PROJECT/${PROJECT}/g" \
+    -e "s/USER/${USER}/g" \
     -e "s/DOMAIN/${DOMAIN}/g" \
     $VHOSTDIR/vhost_template.conf.tpl > $VHOSTDIR/vhost_${DOMAIN}.conf
 ln -s $VHOSTDIR/vhost_${DOMAIN}.conf $VHOSTENABLEDDIR/vhost_${DOMAIN}.conf
@@ -213,13 +229,14 @@ sftp
 ---
 login        : ${USER}
 mot de passe : ${sftppasswd}
-chemin       : $WDIR/${PROJECT}/www
+chemin       : $WDIR/${USER}/www
 
 sql
 ---
 login        : ${DATBASEUSER}
 mot de passe : ${dbpasswd}
 bdd          : ${DATABASE}
+command      : mysql -u ${DATBASEUSER} -p${dbpasswd} --ssl-mode=DISABLED -h 127.0.0.1
 
 url          : http://${DOMAIN}
 ip           : ${ip}

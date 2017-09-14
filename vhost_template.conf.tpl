@@ -7,20 +7,20 @@
     ErrorLog        /var/log/apache2/DOMAIN_error.log
     LogLevel        warn
 
-    DocumentRoot    /var/www/PROJECT/www
+    DocumentRoot    /var/www/USER/www
     <Directory "/">
         Options         FollowSymLinks Indexes ExecCGI
         AllowOverride   All
         Require all granted
     </Directory>
 
-    <Directory "/var/www/PROJECT/www/">
+    <Directory "/var/www/USER/www/">
         Options Indexes FollowSymLinks MultiViews
         AllowOverride all
         Require all granted
     </Directory>
 
-    <Directory "/var/www/PROJECT/wp-admin">
+    <Directory "/var/www/USER/wp-admin">
         FallbackResource disabled
     </Directory>
 
@@ -33,19 +33,18 @@
 
 #    ProxyPassMatch ^/phpmyadmin !
 #    ProxyPassMatch ^/fpm-status(/.*)?$ fcgi://127.0.0.1:9000/fpm-status$1
-#    ProxyPassMatch ^/(.*\.php(/.*)?)$ fcgi://127.0.0.1:9000/var/www/srv02.edm.netensia.net/$1
 
-####################
-# GZIP COMPRESSION #
-####################
-SetOutputFilter DEFLATE
-AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/x-javascript application/x-httpd-php
-BrowserMatch ^Mozilla/4 gzip-only-text/html
-BrowserMatch ^Mozilla/4\.0[678] no-gzip
-BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
-BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html
-SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip
-#Header append Vary User-Agent env=!dont-vary
+    ####################
+    # GZIP COMPRESSION #
+    ####################
+    SetOutputFilter DEFLATE
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/x-javascript application/x-httpd-php
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip
+    #Header append Vary User-Agent env=!dont-vary
 
     ServerSignature Off
 

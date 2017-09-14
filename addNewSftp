@@ -155,6 +155,7 @@ chmod 700 \
    ${WDIR}/${PROJECT}/dev/
 
 echo "${LOGAPACHE} ${WDIR}/${PROJECT}/log/ none bind 0 0" >> /etc/fstab
+mount -a 
 
 cp /lib64/ld-linux-x86-64.so.2 ${WDIR}/${PROJECT}/lib64/ 
 for b in /bin/bash /bin/nano /bin/ls /usr/bin/tail /usr/bin/vim /bin/cat;

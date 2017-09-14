@@ -15,5 +15,5 @@ test:
   - mysql -e "show databases;"
   - id test
   - cat /etc/apache2/sites-enabled/vhost_test.example.com.conf
-  - cat /etc/php/5.6/fpm/pool.d/test.example.com.conf
+  - cat /etc/php/5.6/fpm/pool.d/test.conf
   - ls -l /var/www/test/*

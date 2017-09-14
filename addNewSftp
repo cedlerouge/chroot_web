@@ -197,7 +197,7 @@ fi
 echo "adding database and user"
 dbpasswd=$(genpasswd)
 mysql -u root -e "create database ${DATABASE};"
-echo "mysql -u root -e \"grant usage on *.* to ${DATBASEUSER}@localhost identified by '${dbpasswd}';GRANT ALL PRIVILEGES ON ${PROJECT}.* TO ${DATBASEUSER}@localhost with grant option;\""
+#echo "mysql -u root -e \"grant usage on *.* to ${DATBASEUSER}@localhost identified by '${dbpasswd}';GRANT ALL PRIVILEGES ON ${PROJECT}.* TO ${DATBASEUSER}@localhost with grant option;\""
 mysql -u root -e "grant usage on *.* to ${DATBASEUSER}@localhost identified by '${dbpasswd}';GRANT ALL PRIVILEGES ON ${PROJECT}.* TO ${DATBASEUSER}@localhost with grant option;"
 
 

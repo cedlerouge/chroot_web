@@ -2,6 +2,7 @@
 image: xenia-apache2-php5.6-fpm-percona
 
 before_script:
+  - history
   - systemctl start mysql
   - systemctl start apache2
   - systemctl start php5.6-fpm

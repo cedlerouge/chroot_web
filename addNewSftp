@@ -124,13 +124,13 @@ fi
 
 sftppasswd=$(genpasswd)
 
-echo "adding user $sftpuser"
+echo "adding user $USER"
 useradd \
    -c "User chrooted" \
    -d "${WDIR}/${PROJECT}/" \
    -g "${GROUP}" \
    -s "/bin/chrootuser" \
-   "${LOGIN}"
+   "${USER}"
 
 echo "${USER}:${sftppasswd}" | chpasswd
 

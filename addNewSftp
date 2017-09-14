@@ -56,7 +56,7 @@ apacheuser=www-data
 MYSQLBIN=`which mysql`
 MYSQLADMIN=`which mysqladmin`
 
-while getopts ":d:p:u:h" opt do
+while getopts ":d:p:u:h" opt; do
     case "$opt" in
         d   ) DATABASE="${OPTARG}" ;;
         p   ) DOMAIN="${OPTARG}" ;;

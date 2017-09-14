@@ -142,6 +142,7 @@ mkdir ${WDIR}/${PROJECT}/ \
    ${WDIR}/${PROJECT}/lib64/ \
    ${WDIR}/${PROJECT}/usr/ \
    ${WDIR}/${PROJECT}/usr/bin/ \
+   ${WDIR}/${PROJECT}/log \
    ${WDIR}/${PROJECT}/dev/ 
    
 chmod 700 \
@@ -152,6 +153,8 @@ chmod 700 \
    ${WDIR}/${PROJECT}/usr/ \
    ${WDIR}/${PROJECT}/usr/bin/ \
    ${WDIR}/${PROJECT}/dev/
+
+echo "${LOGAPACHE} ${WDIR}/${PROJECT}/log/ none bind 0 0" >> /etc/fstab
 
 cp /lib64/ld-linux-x86-64.so.2 ${WDIR}/${PROJECT}/lib64/ 
 for b in /bin/bash /bin/nano /bin/ls /usr/bin/tail /usr/bin/vim /bin/cat;
@@ -213,11 +216,11 @@ chemin       : $WDIR/${PROJECT}/www
 
 sql
 ---
-login        : ${DATABASEUSER}
+login        : ${DATBASEUSER}
 mot de passe : ${dbpasswd}
 bdd          : ${DATABASE}
 
-url          : http://${domain}
+url          : http://${DOMAIN}
 ip           : ${ip}
 EOF
 
